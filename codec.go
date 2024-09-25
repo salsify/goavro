@@ -350,10 +350,10 @@ func newSymbolTable() map[string]*Codec {
 			typeName:          &name{"salsify_uuid_binary", "com.salsify"},
 			schemaOriginal:    "fixed",
 			schemaCanonical:   "fixed",
-			binaryFromNative:  salsifyCompressedUuidBinaryFromNative,
-			nativeFromBinary:  salsifyCompressedUuidNativeFromBinary,
-			nativeFromTextual: salsifyCompressedUuidNativeFromTextual,
-			textualFromNative: salsifyCompressedUuidTextualFromNative,
+			binaryFromNative:  salsifyCompressedUUIDBinaryFromNative,
+			nativeFromBinary:  salsifyCompressedUUIDNativeFromBinary,
+			nativeFromTextual: salsifyCompressedUUIDNativeFromTextual,
+			textualFromNative: salsifyCompressedUUIDTextualFromNative,
 		},
 	}
 }
