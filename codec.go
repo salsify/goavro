@@ -346,6 +346,15 @@ func newSymbolTable() map[string]*Codec {
 			nativeFromBinary:  nativeFromDate(intNativeFromBinary),
 			textualFromNative: dateFromNative(intTextualFromNative),
 		},
+		"com.salsify.salsify_uuid_binary": {
+			typeName:          &name{"salsify_uuid_binary", "com.salsify"},
+			schemaOriginal:    "fixed",
+			schemaCanonical:   "fixed",
+			binaryFromNative:  salsifyCompressedUUIDBinaryFromNative,
+			nativeFromBinary:  salsifyCompressedUUIDNativeFromBinary,
+			nativeFromTextual: salsifyCompressedUUIDNativeFromTextual,
+			textualFromNative: salsifyCompressedUUIDTextualFromNative,
+		},
 	}
 }
 
@@ -684,6 +693,14 @@ func buildCodecForTypeDescribedByString(st map[string]*Codec, enclosingNamespace
 	// Avro specification allows abbreviation of type name inside a namespace.
 	if enclosingNamespace != "" {
 		if cd, ok := st[enclosingNamespace+"."+typeName]; ok {
+			return cd, nil
+		}
+	}
+
+	// While building the codec, check for any custom built codecs, which would be referred
+	// to by name (ie com.salsify.salsify_uuid_binary)
+	if name, ok := newNameFromSchemaMap(enclosingNamespace, schemaMap); ok == nil {
+		if cd, ok := st[name.fullName]; ok {
 			return cd, nil
 		}
 	}
