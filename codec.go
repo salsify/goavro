@@ -341,10 +341,10 @@ func newSymbolTable() map[string]*Codec {
 			typeName:          &name{"int.date", nullNamespace},
 			schemaOriginal:    "int",
 			schemaCanonical:   "int",
-			nativeFromTextual: nativeFromDate(intNativeFromTextual),
+			nativeFromTextual: nativeFromTextualDate,
 			binaryFromNative:  dateFromNative(intBinaryFromNative),
 			nativeFromBinary:  nativeFromDate(intNativeFromBinary),
-			textualFromNative: dateFromNative(intTextualFromNative),
+			textualFromNative: textualFromNativeDate,
 		},
 		"com.salsify.salsify_uuid_binary": {
 			typeName:          &name{"salsify_uuid_binary", "com.salsify"},

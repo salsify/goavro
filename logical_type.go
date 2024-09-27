@@ -64,6 +64,38 @@ func dateFromNative(fn fromNativeFn) fromNativeFn {
 	}
 }
 
+func nativeFromTextualDate(buf []byte) (interface{}, []byte, error) {
+	native, _, err := stringNativeFromTextual(buf)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	stringNative, ok := native.(string)
+	if !ok {
+		return nil, nil, fmt.Errorf("cannot decode textual date: expected string, received %T", native)
+	}
+
+	t, err := time.Parse(time.DateOnly, stringNative)
+	if err != nil {
+		return nil, nil, fmt.Errorf("cannot decode textual date")
+	}
+
+	return t, buf, nil
+}
+
+func textualFromNativeDate(buf []byte, d interface{}) ([]byte, error) {
+	date, ok := d.(time.Time)
+
+	if !ok {
+		return nil, fmt.Errorf("cannot encode to textual date, expected time.Time, received %T", date)
+	}
+
+	buf = append(buf, '"')
+	buf = append(buf, date.Format(time.DateOnly)...)
+	buf = append(buf, '"')
+	return buf, nil
+}
+
 // ////////////////////////////////////////////////////////////////////////////////////////////
 // time-millis logical type - to/from time.Time, time.UTC location
 // ////////////////////////////////////////////////////////////////////////////////////////////

@@ -15,12 +15,34 @@ import (
 	"math/big"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 const (
 	precision = "precision"
 	scale     = "scale"
 )
+
+func TestTextualFromNativeDate(t *testing.T) {
+	date := time.Date(2010, 11, 9, 0, 0, 0, 0, time.UTC)
+	buf := make([]byte, 0)
+
+	buf, err := textualFromNativeDate(buf, date)
+
+	assert.NoError(t, err)
+	assert.Equal(t, buf, []byte("\"2010-11-09\""))
+}
+
+func TestNativeFromTextualDate(t *testing.T) {
+	date := []byte("\"2010-11-09\"")
+	expected := time.Date(2010, 11, 9, 0, 0, 0, 0, time.UTC)
+
+	native, _, err := nativeFromTextualDate(date)
+
+	assert.NoError(t, err)
+	assert.Equal(t, expected, native)
+}
 
 func TestSchemaLogicalType(t *testing.T) {
 	testSchemaValid(t, `{"type": "long", "logicalType": "timestamp-millis"}`)
