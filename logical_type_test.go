@@ -34,6 +34,33 @@ func TestTextualFromNativeDate(t *testing.T) {
 	assert.Equal(t, buf, []byte("\"2010-11-09\""))
 }
 
+func TestTextualFromNativeDate_WithJulianDates(t *testing.T) {
+	cases := map[int]string{
+		-141426: "1582-10-16",
+		-141427: "1582-10-15",
+		-141428: "1582-10-04",
+		-141429: "1582-10-03",
+		-171596: "1500-02-29",
+		-171597: "1500-02-28",
+		-682944: "0100-03-02",
+		-682945: "0100-03-01",
+		-682946: "0100-02-29",
+		-718466: "0002-11-30",
+		-719530: "0000-01-01",
+	}
+
+	for caseDate, expected := range cases {
+		date := time.Date(1970, 1, 1, 0, 0, 0, 0, time.UTC).AddDate(0, 0, caseDate).UTC()
+		buf := make([]byte, 0)
+
+		buf, err := textualFromNativeDate(buf, date)
+		assert.NoError(t, err)
+
+		expectedBuf := fmt.Sprintf("\"%s\"", expected)
+		assert.Equal(t, buf, []byte(expectedBuf))
+	}
+}
+
 func TestNativeFromTextualDate(t *testing.T) {
 	date := []byte("\"2010-11-09\"")
 	expected := time.Date(2010, 11, 9, 0, 0, 0, 0, time.UTC)
