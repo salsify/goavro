@@ -90,10 +90,78 @@ func textualFromNativeDate(buf []byte, d interface{}) ([]byte, error) {
 		return nil, fmt.Errorf("cannot encode to textual date, expected time.Time, received %T", date)
 	}
 
+	formatedDate := toReformAwareCalendar(date)
+
 	buf = append(buf, '"')
-	buf = append(buf, date.Format(time.DateOnly)...)
+	buf = append(buf, formatedDate...)
 	buf = append(buf, '"')
 	return buf, nil
+}
+
+// Corresponds with the Date::ITALY reform date which is the default in Ruby:
+// https://github.com/ruby/date/blob/c2d9cc29280e0eabb0bc72175c80704f1737a9fb/doc/date/calendars.rdoc?plain=1#L37-L38
+var calendarReformDate = time.Date(1582, 10, 14, 0, 0, 0, 0, time.UTC)
+
+// These are days only observed in the Julian calendar, so we have to
+// hardcode their textual encoding.
+var julianLeapDays = map[int64]string{
+	-171596: "1500-02-29",
+	-208121: "1400-02-29",
+	-244646: "1300-02-29",
+	-317696: "1100-02-29",
+	-354221: "1000-02-29",
+	-390746: "0900-02-29",
+	-463796: "0700-02-29",
+	-500321: "0600-02-29",
+	-536846: "0500-02-29",
+	-609896: "0300-02-29",
+	-646421: "0200-02-29",
+	-682945: "0100-03-01",
+	-682946: "0100-02-29",
+}
+
+// These are days when the offset between the Julian and Gregorian
+// calendar change by 1.
+var julianOffsetCutoffs = []int64{
+	-171597, // 1500-02-28
+	-208122, // 1400-02-28
+	-244647, // 1300-02-28
+	-317697, // 1100-02-28
+	-354222, // 1000-02-28
+	-390746, // 0900-02-28
+	-463797, // 0700-02-28
+	-500322, // 0600-02-28
+	-536847, // 0500-02-28
+	-609897, // 0300-02-28
+	-646422, // 0200-02-28
+	-682947, // 0100-02-28
+}
+
+// This is an implementation of the algorithm described here:
+// https://en.wikipedia.org/wiki/Conversion_between_Julian_and_Gregorian_calendars
+//
+// At the time of writing, we could not find a library that could do
+// this out-of-the-box. There are formulas that can be used as well,
+// but we worry they would be harder to maintain.
+func toReformAwareCalendar(date time.Time) string {
+	if date.After(calendarReformDate) {
+		return date.Format(time.DateOnly)
+	}
+
+	gregorianInt := date.Unix() / 86400
+	if julianLeap, ok := julianLeapDays[gregorianInt]; ok {
+		return julianLeap
+	}
+
+	offset := 10
+	for _, cutoff := range julianOffsetCutoffs {
+		if gregorianInt <= cutoff {
+			offset--
+		}
+	}
+
+	julian := date.AddDate(0, 0, -1*offset)
+	return julian.Format(time.DateOnly)
 }
 
 // ////////////////////////////////////////////////////////////////////////////////////////////
